@@ -1,0 +1,138 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ── Reset & Base ─────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; }
+
+html { scroll-behavior: smooth; }
+
+body {
+  margin: 0;
+  background-color: #F8FAFC;
+  color: #0F172A;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 15px;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ── Scrollbar ─────────────────────────────────── */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: #FFFFFF; }
+::-webkit-scrollbar-thumb { background: #E2E8F0; border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: #CBD5E1; }
+
+/* ── Selection ─────────────────────────────────── */
+::selection { background: rgba(30, 58, 138, 0.2); color: #0F172A; }
+
+/* ── Grid background ───────────────────────────── */
+.grid-bg {
+  background-image:
+    linear-gradient(rgba(30, 58, 138, 0.05) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(30, 58, 138, 0.05) 1px, transparent 1px);
+  background-size: 40px 40px;
+}
+
+/* ── Glassmorphism card ────────────────────────── */
+.glass {
+  background: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+/* ── Accent glow ───────────────────────────────── */
+.glow-accent { text-shadow: 0 0 20px rgba(30, 58, 138, 0.5); }
+.glow-gold   { text-shadow: 0 0 20px rgba(217, 119, 6, 0.5); }
+
+/* ── Typing cursor ─────────────────────────────── */
+.typing-cursor::after {
+  content: '▋';
+  animation: blink 1s step-end infinite;
+  color: #1E3A8A;
+  margin-left: 2px;
+}
+
+/* ── Chat bubble animations ────────────────────── */
+.msg-enter {
+  animation: fadeUp 0.4s cubic-bezier(0.16,1,0.3,1) forwards;
+}
+
+/* ── Agent trace pill ──────────────────────────── */
+.agent-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 8px;
+  border-radius: 100px;
+  font-size: 11px;
+  font-family: 'JetBrains Mono', monospace;
+  letter-spacing: 0.02em;
+}
+
+/* ── Recharts overrides ────────────────────────── */
+.recharts-tooltip-wrapper .recharts-default-tooltip {
+  background: #FFFFFF !important;
+  border: 1px solid #E2E8F0 !important;
+  border-radius: 8px !important;
+  color: #0F172A !important;
+}
+
+/* ── Scan line effect ──────────────────────────── */
+.scan-line {
+  position: absolute;
+  left: 0; right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, rgba(30, 58, 138, 0.4), transparent);
+  animation: scan 3s linear infinite;
+  pointer-events: none;
+}
+
+/* ── Staggered animation helpers ──────────────── */
+.delay-100 { animation-delay: 100ms; opacity: 0; }
+.delay-200 { animation-delay: 200ms; opacity: 0; }
+.delay-300 { animation-delay: 300ms; opacity: 0; }
+.delay-400 { animation-delay: 400ms; opacity: 0; }
+
+/* ── Number highlight ──────────────────────────── */
+.stat-number {
+  font-family: 'Outfit', sans-serif;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.01em;
+}
+
+/* ── Scrollbar none ─────────────────────────────── */
+.scrollbar-none::-webkit-scrollbar { display: none; }
+.scrollbar-none { -ms-overflow-style: none; scrollbar-width: none; }
+
+/* ── Fade-up animation ─────────────────────────── */
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(14px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+@keyframes scan {
+  from { transform: translateY(-100%); }
+  to   { transform: translateY(400%); }
+}
+
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0; }
+}
+
+.animate-fade-up  { animation: fadeUp 0.5s ease forwards; }
+.animate-fade-in  { animation: fadeIn 0.4s ease forwards; }
+
+/* ── Data table row hover ──────────────────────── */
+.data-table-row:hover { background: rgba(30, 58, 138, 0.03); }
+
+/* ── Rich-text block spacing reset ────────────── */
+.rich-text-block > *:first-child { margin-top: 0 !important; }
+.rich-text-block > *:last-child  { margin-bottom: 0 !important; }
