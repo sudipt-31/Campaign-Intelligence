@@ -49,16 +49,22 @@ Your ONLY job: classify the user question and output a routing plan as valid JSO
 Output format (JSON only, no extra text):
 {
   "intent": "one-line description of what the user wants",
-  "requires_data": true,
-  "requires_insight": true,
-  "requires_chart": true,
-  "requires_recommendations": true,
+  "requires_data": true/false,
+  "requires_insight": true/false,
+  "requires_chart": true/false,
+  "requires_recommendations": true/false,
   "primary_table": "marketing_kpis" | "campaign_diagnostics" | "ad_recall" | "multiple" | null,
   "primary_campaign": "exact or partial campaign name, or null",
   "primary_segment": "exact or partial segment name, or null",
   "primary_metric": "metric name or null",
   "routing_notes": "1-2 sentence hint for the Data Analyst about which tools to use"
-}"""
+}
+
+Rules for routing:
+- If the question is purely conversational (e.g. "Hi", "How are you?"), set all 'requires_' flags to false EXCEPT insight and recommendations if you want a polite response.
+- If the question is about specific numbers or trends, set requires_data to true.
+- If the question warrants a visual comparison, set requires_chart to true. Otherwise set it to false.
+"""
 
 
 def build_supervisor_agent():
@@ -130,7 +136,8 @@ Focus on:
   "table" → data has MANY rows with multiple columns (e.g. all campaigns × all metrics),
             or question asks to "show", "list", "breakdown" with > 6 data points that
             don't fit a clean chart axis
-  "bar"   → all other comparisons between campaigns / segments
+  "bar"   → comparisons between campaigns / segments
+  "none"  → if the question is conversational or doesn't involve numeric data that warrants a chart
 
 Output ONLY valid JSON (no markdown fences):
 {
@@ -139,7 +146,7 @@ Output ONLY valid JSON (no markdown fences):
   "top_performer": {"name": "...", "value": ..., "context": "..."},
   "bottom_performer": {"name": "...", "value": ..., "context": "..."},
   "trend_summary": "2-3 sentence narrative",
-  "chart_suggestion": "bar" | "line" | "pie" | "radar" | "table",
+  "chart_suggestion": "bar" | "line" | "pie" | "radar" | "table" | "none",
   "chart_title": "descriptive chart title (≤ 60 chars)",
   "chart_data": [{"name": "label ≤20 chars", "value": <number>}, ...],
   "table_columns": ["Col1", "Col2", ...],
@@ -148,8 +155,10 @@ Output ONLY valid JSON (no markdown fences):
 
 Rules:
 - chart_data: convert proportions to % (× 100, round 1 dp). 3–8 points for charts.
+- chart_suggestion: If the data is purely qualitative or a simple conversational response, use "none".
 - table_columns / table_rows: populate ONLY when chart_suggestion is "table". Otherwise set both to null.
-- Labels ≤ 20 chars. No null values in chart_data."""
+- Labels ≤ 20 chars. No null values in chart_data.
+- If chart_suggestion is "none", set chart_data to []."""
 
 
 def build_insight_agent():
@@ -170,12 +179,12 @@ Produce the FINAL user-facing response as valid JSON (no markdown fences, no pre
 
 Output format (ALL fields required):
 {
-  "summary": "One concise sentence — the direct answer. Use % not decimals.",
+  "summary": "A concise direct answer to the user's question. Use 1-3 sentences if necessary to be helpful. Use % not decimals.",
 
   "rich_text": "## [Direct Answer Heading]\\n\\nOpening paragraph with the key number **bolded**.\\n\\n### Key Findings\\n\\n- **Campaign X**: 11.7% uplift — highest across all segments\\n- **Campaign Y**: -2.3% — underperforming vs norm\\n\\n### Trend\\n\\nA 2-3 sentence narrative about time movement or segment patterns.\\n\\n### Bottom Line\\n\\nOne actionable closing sentence.",
 
   "chart": [{"name": "label ≤20 chars", "value": <number>}, ...],
-  "chart_type": "bar" | "line" | "pie" | "radar" | "table",
+  "chart_type": "bar" | "line" | "pie" | "radar" | "table" | "none",
   "chart_title": "Descriptive chart title (≤ 60 chars)",
 
   "table_data": {
@@ -191,15 +200,15 @@ Output format (ALL fields required):
 }
 
 Strict Rules:
-  1. summary: one sentence, plain English, answer-first (no hedging, no re-stating the question).
+  1. summary: concise, plain English, answer-first (no hedging, no re-stating the question). If the user asks a simple question, keep it to one sentence. If it's complex, use up to 3 sentences.
   2. rich_text: MUST be valid Markdown. Use ## for the top heading, ### for sub-headings,
      **bold** for key numbers and campaign names, - for bullet lists.
      When comparing multiple campaigns or segments, use a markdown table with | headers |.
      Always include: opening paragraph → ### Key Findings → ### Trend/Context → ### Bottom Line.
      Use % (e.g. 11.7%) not decimals (0.117). Numbers must be clear and prominent.
-  3. chart_type: copy EXACTLY from the Insight Agent's chart_suggestion field.
+  3. chart_type: copy EXACTLY from the Insight Agent's chart_suggestion field. If the Insight Agent suggests "none", set chart to [].
   4. chart: copy chart_data from Insight Agent. All values must be numbers.
-     If chart_type is "table", set chart to [] (empty).
+     If chart_type is "table" or "none", set chart to [] (empty).
   5. table_data: populate ONLY when chart_type == "table" using the Insight Agent's
      table_columns / table_rows. Otherwise set table_data to null.
   6. recommendations: 3 items, each specific to THIS data, not generic platitudes.

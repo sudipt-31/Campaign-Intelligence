@@ -8,20 +8,34 @@ import {
 } from 'recharts'
 
 /* ── Palette ─────────────────────────────────── */
-const COLORS = ['#00D4FF', '#FFB800', '#00E5A0', '#FF4D6A', '#A78BFA', '#F97316', '#38BDF8', '#FB7185']
+const COLORS = [
+  '#F59E0B', // Amber
+  '#6366F1', // Indigo
+  '#10B981', // Sage
+  '#F43F5E', // Rose
+  '#8B5CF6', // Violet
+  '#EC4899', // Pink
+  '#06B6D4', // Cyan
+  '#F97316'  // Orange
+]
 
 /* ── Custom tooltip ──────────────────────────── */
 const CustomTooltip = ({ active, payload, label }) => {
   if (!active || !payload?.length) return null
   return (
-    <div className="bg-card border border-border rounded-lg px-4 py-3 shadow-card">
-      <p className="text-dim text-xs font-mono mb-1">{label}</p>
-      {payload.map((p, i) => (
-        <div key={i} className="flex items-center gap-2">
-          <span className="w-2 h-2 rounded-full" style={{ background: p.fill || p.color }} />
-          <span className="text-text text-sm font-display font-semibold">{p.value?.toFixed?.(1) ?? p.value}</span>
-        </div>
-      ))}
+    <div className="bg-white border border-border/60 rounded-xl px-4 py-3 shadow-card backdrop-blur-md bg-white/90">
+      <p className="text-dim text-[10px] font-bold uppercase tracking-wider mb-2">{label}</p>
+      <div className="space-y-1.5">
+        {payload.map((p, i) => (
+          <div key={i} className="flex items-center justify-between gap-4">
+            <div className="flex items-center gap-2">
+              <span className="w-2 h-2 rounded-full" style={{ background: p.fill || p.color }} />
+              <span className="text-text/70 text-xs font-medium">{p.name}</span>
+            </div>
+            <span className="text-text text-sm font-display font-bold">{p.value?.toLocaleString?.() ?? p.value}</span>
+          </div>
+        ))}
+      </div>
     </div>
   )
 }
@@ -34,8 +48,8 @@ const renderPieLabel = ({ cx, cy, midAngle, innerRadius, outerRadius, name, valu
   const y = cy + radius * Math.sin(-midAngle * RADIAN)
   if (value < 5) return null
   return (
-    <text x={x} y={y} fill="#fff" textAnchor="middle" dominantBaseline="central" fontSize={11} fontFamily="JetBrains Mono">
-      {value?.toFixed?.(1)}
+    <text x={x} y={y} fill="#fff" textAnchor="middle" dominantBaseline="central" fontSize={10} fontWeight={700} fontFamily="Plus Jakarta Sans">
+      {value?.toFixed?.(0)}%
     </text>
   )
 }
@@ -44,14 +58,14 @@ const renderPieLabel = ({ cx, cy, midAngle, innerRadius, outerRadius, name, valu
 function DataTable({ columns = [], rows = [] }) {
   if (!columns.length) return null
   return (
-    <div className="overflow-x-auto rounded-xl border border-border mt-1">
-      <table className="w-full text-xs font-mono">
+    <div className="overflow-x-auto rounded-2xl border border-border/60 mt-2 shadow-soft bg-white/50">
+      <table className="w-full text-xs font-body">
         <thead>
-          <tr className="border-b border-border bg-muted/40">
+          <tr className="border-b border-border/40 bg-muted/30">
             {columns.map((col, i) => (
               <th
                 key={i}
-                className="px-3 py-2.5 text-left text-dim uppercase tracking-widest whitespace-nowrap font-semibold"
+                className="px-4 py-3 text-left text-dim uppercase tracking-wider whitespace-nowrap font-bold text-[10px]"
               >
                 {col}
               </th>
@@ -62,11 +76,11 @@ function DataTable({ columns = [], rows = [] }) {
           {rows.map((row, ri) => (
             <tr
               key={ri}
-              className={`border-b border-border/50 transition-colors hover:bg-accent/5 ${ri % 2 === 0 ? 'bg-card' : 'bg-ink/30'}`}
+              className={`border-b border-border/20 transition-colors hover:bg-accent/5 ${ri % 2 === 0 ? 'bg-transparent' : 'bg-muted/10'}`}
             >
               {row.map((cell, ci) => (
-                <td key={ci} className="px-3 py-2 text-text/80 whitespace-nowrap">
-                  {cell}
+                <td key={ci} className="px-4 py-3 text-text/80 whitespace-nowrap font-medium">
+                  {typeof cell === 'number' ? cell.toLocaleString() : cell}
                 </td>
               ))}
             </tr>
@@ -82,18 +96,18 @@ export default function Chart({ data = [], type = 'bar', title, tableData = null
   const hasTable = type === 'table' && tableData?.columns?.length > 0
 
   const sharedProps = {
-    margin: { top: 8, right: 16, left: -8, bottom: 8 },
+    margin: { top: 12, right: 12, left: -12, bottom: 0 },
   }
 
   const axisStyle = {
-    tick:     { fill: '#607080', fontSize: 11, fontFamily: 'JetBrains Mono' },
-    axisLine: { stroke: '#1E2A38' },
+    tick:     { fill: '#7C726A', fontSize: 10, fontWeight: 600, fontFamily: 'Plus Jakarta Sans' },
+    axisLine: { stroke: '#EDE9E6' },
     tickLine: false,
   }
 
   const gridStyle = {
-    strokeDasharray: '4 4',
-    stroke: '#1E2A38',
+    strokeDasharray: '6 6',
+    stroke: '#EDE9E6',
     vertical: false,
   }
 

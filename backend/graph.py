@@ -121,7 +121,15 @@ def data_analyst_node(state: AgentState) -> AgentState:
     if state.get("error"):
         return state
 
-    routing  = state.get("routing", {})
+    routing = state.get("routing", {})
+    if not routing.get("requires_data", True):
+        print("[DataAnalyst] Skipping data fetch (not required).")
+        return {
+            **state,
+            "raw_data": "No data requested for this query.",
+            "agent_trace": state.get("agent_trace", []) + ["data_analyst_skipped"],
+        }
+
     metric   = routing.get("primary_metric")
     segment  = routing.get("primary_segment")
     campaign = routing.get("primary_campaign")
@@ -165,6 +173,15 @@ def insight_node(state: AgentState) -> AgentState:
     print("\n[InsightAgent] Generating insights...")
     if state.get("error"):
         return state
+
+    routing = state.get("routing", {})
+    if not routing.get("requires_insight", True):
+        print("[InsightAgent] Skipping insights (not required).")
+        return {
+            **state,
+            "insights": "No specific insights required for this conversational query.",
+            "agent_trace": state.get("agent_trace", []) + ["insight_agent_skipped"],
+        }
 
     data = state.get("raw_data", "No data available")
 
