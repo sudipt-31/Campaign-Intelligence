@@ -289,15 +289,7 @@ function SuggestionChip({ text, onClick }) {
 }
 
 /* ── Chat history indicator ───────────────────── */
-function HistoryBadge({ count }) {
-  if (count <= 1) return null
-  return (
-    <div className="flex items-center gap-1.5 px-3 py-1.5 bg-white border border-border/60 rounded-full shadow-soft">
-      <History size={11} className="text-indigo/60" />
-      <span className="text-[10px] font-bold text-text/50 uppercase tracking-wider">{count} steps in memory</span>
-    </div>
-  )
-}
+
 
 /* ── Main Chat ─────────────────────────────────── */
 export default function Chat({ suggestions = [] }) {
@@ -315,13 +307,18 @@ export default function Chat({ suggestions = [] }) {
   const onSend = async (text = input) => {
     if (!text.trim() || loading) return
     
+    const currentHistory = messages.map(m => ({
+      role: m.role,
+      content: m.content || ''
+    }))
+
     const userMsg = { role: 'user', content: text }
     setMessages(prev => [...prev, userMsg])
     setInput('')
     setLoading(true)
 
     try {
-      const res = await queryAgent(text)
+      const res = await queryAgent(text, currentHistory)
       setMessages(prev => [...prev, { 
         role:            'assistant', 
         content:         res.content || res.summary || 'Analysis complete.',
@@ -381,9 +378,7 @@ export default function Chat({ suggestions = [] }) {
         <div className="max-w-4xl mx-auto relative">
           
           {/* History badge */}
-          <div className="absolute -top-12 left-0 right-0 flex justify-center pointer-events-none">
-            <HistoryBadge count={messages.length} />
-          </div>
+          
 
           <div className="bg-white border border-border shadow-card rounded-[24px] p-2 flex items-center gap-2 focus-within:border-accent/40 focus-within:shadow-accent/5 transition-all">
             <div className="flex-shrink-0 pl-3 text-dim/40">

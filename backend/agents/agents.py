@@ -156,7 +156,7 @@ Output ONLY valid JSON (no markdown fences):
 Rules:
 - chart_data: convert proportions to % (× 100, round 1 dp). 3–8 points for charts.
 - chart_suggestion: If the data is purely qualitative or a simple conversational response, use "none".
-- table_columns / table_rows: populate ONLY when chart_suggestion is "table". Otherwise set both to null.
+- table_columns / table_rows: ALWAYS populate these fields with the relevant dataset summary, so the Report Writer has full data to create markdown tables.
 - Labels ≤ 20 chars. No null values in chart_data.
 - If chart_suggestion is "none", set chart_data to []."""
 
@@ -181,7 +181,7 @@ Output format (ALL fields required):
 {
   "summary": "A concise direct answer to the user's question. Use 1-3 sentences if necessary to be helpful. Use % not decimals.",
 
-  "rich_text": "## [Direct Answer Heading]\\n\\nOpening paragraph with the key number **bolded**.\\n\\n### Key Findings\\n\\n- **Campaign X**: 11.7% uplift — highest across all segments\\n- **Campaign Y**: -2.3% — underperforming vs norm\\n\\n### Trend\\n\\nA 2-3 sentence narrative about time movement or segment patterns.\\n\\n### Bottom Line\\n\\nOne actionable closing sentence.",
+  "rich_text": "## [Direct Answer Heading]\\n\\nOpening paragraph with the key number **bolded**.\\n\\n### Key Data (Tabular Format)\\n\\n| Column 1 | Column 2 | Column 3 |\\n|----------|----------|----------|\\n| Value 1  | Value 2  | Value 3  |\\n\\n*(You MUST always include a markdown table displaying the relevant data, even if manipulative data is needed)*\\n\\n### Key Findings\\n\\n- **Campaign X**: 11.7% uplift — highest across all segments\\n- **Campaign Y**: -2.3% — underperforming vs norm\\n\\n### Trend\\n\\nA 2-3 sentence narrative about time movement or segment patterns.\\n\\n### Bottom Line\\n\\nOne actionable closing sentence.",
 
   "chart": [{"name": "label ≤20 chars", "value": <number>}, ...],
   "chart_type": "bar" | "line" | "pie" | "radar" | "table" | "none",
@@ -201,16 +201,11 @@ Output format (ALL fields required):
 
 Strict Rules:
   1. summary: concise, plain English, answer-first (no hedging, no re-stating the question). If the user asks a simple question, keep it to one sentence. If it's complex, use up to 3 sentences.
-  2. rich_text: MUST be valid Markdown. Use ## for the top heading, ### for sub-headings,
-     **bold** for key numbers and campaign names, - for bullet lists.
-     When comparing multiple campaigns or segments, use a markdown table with | headers |.
-     Always include: opening paragraph → ### Key Findings → ### Trend/Context → ### Bottom Line.
-     Use % (e.g. 11.7%) not decimals (0.117). Numbers must be clear and prominent.
+  2. rich_text: MUST be highly descriptive, detailed, and valid Markdown. You MUST include a rich text tabular format (markdown table) with the database or manipulated data. Use ## for the top heading, ### for sub-headings, **bold** for key numbers and campaign names, - for bullet lists. Always include: opening paragraph → ### Key Data (Tabular Format) → ### Key Findings → ### Trend/Context → ### Bottom Line. Use % (e.g. 11.7%) not decimals (0.117). Numbers must be clear and prominent. Ensure ALL newlines are properly escaped as \\n.
   3. chart_type: copy EXACTLY from the Insight Agent's chart_suggestion field. If the Insight Agent suggests "none", set chart to [].
   4. chart: copy chart_data from Insight Agent. All values must be numbers.
      If chart_type is "table" or "none", set chart to [] (empty).
-  5. table_data: populate ONLY when chart_type == "table" using the Insight Agent's
-     table_columns / table_rows. Otherwise set table_data to null.
+  5. table_data: ALWAYS populate this using the Insight Agent's table_columns / table_rows. If they are missing, set table_data to null.
   6. recommendations: 3 items, each specific to THIS data, not generic platitudes.
   7. If conversation history is present, reference prior context briefly in rich_text
      (e.g. "Building on the uplift comparison above…") to feel conversational."""

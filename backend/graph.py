@@ -79,7 +79,10 @@ def _build_history_context(chat_history: list[dict], max_turns: int = 6) -> str:
 
 def supervisor_node(state: AgentState) -> AgentState:
     """Classifies the question and produces a routing plan."""
-    print(f"\n[Supervisor] Routing question: {state['question']}")
+    print("\n" + "═"*60)
+    print(f" 🤖 [STEP 1: SUPERVISOR] Analyzing: {state['question']}")
+    print("═"*60, flush=True)
+    
     try:
         history_ctx = _build_history_context(state.get("chat_history", []))
         question_with_ctx = state["question"]
@@ -104,26 +107,34 @@ def supervisor_node(state: AgentState) -> AgentState:
                 "routing_notes": "Default routing — call compare_campaign_uplift and get_dataset_overview",
             }
 
-        print(f"[Supervisor] Routing: {json.dumps(routing, indent=2)}")
+        print(f" ✅ [Supervisor] Routing decided:")
+        print(f"    - Intent: {routing.get('intent')}")
+        print(f"    - Requires Data: {routing.get('requires_data')}")
+        print(f"    - Primary Table: {routing.get('primary_table')}")
+        print(f"    - Notes: {routing.get('routing_notes')}")
+        
         return {
             **state,
             "routing":     routing,
             "agent_trace": state.get("agent_trace", []) + ["supervisor"],
         }
     except Exception as e:
-        print(f"[Supervisor] Error: {e}")
+        print(f" ❌ [Supervisor] Error: {e}")
         return {**state, "error": f"Supervisor failed: {str(e)}"}
 
 
 def data_analyst_node(state: AgentState) -> AgentState:
     """Calls data tools to fetch relevant campaign metrics."""
-    print("\n[DataAnalyst] Fetching data...")
+    print("\n" + "─"*60)
+    print(" 📊 [STEP 2: DATA ANALYST] Fetching numbers...")
+    print("─"*60, flush=True)
+
     if state.get("error"):
         return state
 
     routing = state.get("routing", {})
     if not routing.get("requires_data", True):
-        print("[DataAnalyst] Skipping data fetch (not required).")
+        print(" ⏭️ [DataAnalyst] Skipping data fetch (not required).")
         return {
             **state,
             "raw_data": "No data requested for this query.",
@@ -157,26 +168,33 @@ def data_analyst_node(state: AgentState) -> AgentState:
         executor = build_data_analyst_agent()
         result   = executor.invoke({"input": "\n".join(input_parts)})
         raw_data = result.get("output", "No data returned")
-        print(f"[DataAnalyst] Data fetched ({len(raw_data)} chars)")
+        
+        # Truncate raw data for terminal visibility
+        data_preview = (raw_data[:300] + "...") if len(raw_data) > 300 else raw_data
+        print(f" ✅ [DataAnalyst] Data retrieved (preview):\n{data_preview}\n", flush=True)
+        
         return {
             **state,
             "raw_data":    raw_data,
             "agent_trace": state.get("agent_trace", []) + ["data_analyst"],
         }
     except Exception as e:
-        print(f"[DataAnalyst] Error: {e}")
+        print(f" ❌ [DataAnalyst] Error: {e}")
         return {**state, "error": f"Data Analyst failed: {str(e)}"}
 
 
 def insight_node(state: AgentState) -> AgentState:
     """Analyses raw data and generates structured insights."""
-    print("\n[InsightAgent] Generating insights...")
+    print("\n" + "─"*60)
+    print(" 💡 [STEP 3: INSIGHT AGENT] Processing trends and anomalies...")
+    print("─"*60, flush=True)
+
     if state.get("error"):
         return state
 
     routing = state.get("routing", {})
     if not routing.get("requires_insight", True):
-        print("[InsightAgent] Skipping insights (not required).")
+        print(" ⏭️ [InsightAgent] Skipping insights (not required).")
         return {
             **state,
             "insights": "No specific insights required for this conversational query.",
@@ -198,20 +216,33 @@ def insight_node(state: AgentState) -> AgentState:
             "data":     data,
         })
         insights = response.content
-        print(f"[InsightAgent] Insights generated ({len(insights)} chars)")
+        
+        # Try to parse and show key findings
+        parsed_insights = _extract_json(insights)
+        if parsed_insights:
+            findings = parsed_insights.get("key_findings", [])
+            print(f" ✅ [InsightAgent] Top Findings:")
+            for f in findings[:3]:
+                print(f"    - {f}")
+        else:
+            print(f" ✅ [InsightAgent] Insights generated (raw).")
+            
         return {
             **state,
             "insights":    insights,
             "agent_trace": state.get("agent_trace", []) + ["insight_agent"],
         }
     except Exception as e:
-        print(f"[InsightAgent] Error: {e}")
+        print(f" ❌ [InsightAgent] Error: {e}")
         return {**state, "error": f"Insight Agent failed: {str(e)}"}
 
 
 def report_writer_node(state: AgentState) -> AgentState:
     """Produces the final user-facing JSON response."""
-    print("\n[ReportWriter] Writing final response...")
+    print("\n" + "─"*60)
+    print(" ✍️ [STEP 4: REPORT WRITER] Crafting final response...")
+    print("─"*60, flush=True)
+
     if state.get("error"):
         return state
 
@@ -243,14 +274,18 @@ def report_writer_node(state: AgentState) -> AgentState:
                 "recommendations": ["Review the raw data for more details."],
             }
 
-        print("[ReportWriter] Final response ready.")
+        print(f" ✅ [ReportWriter] Response complete.")
+        print(f"    - Summary: {parsed.get('summary')[:100]}...")
+        print(f"    - Recommendations: {len(parsed.get('recommendations', []))} generated")
+        print("═"*60 + "\n", flush=True)
+        
         return {
             **state,
             "final_response": parsed,
             "agent_trace":    state.get("agent_trace", []) + ["report_writer"],
         }
     except Exception as e:
-        print(f"[ReportWriter] Error: {e}")
+        print(f" ❌ [ReportWriter] Error: {e}")
         return {**state, "error": f"Report Writer failed: {str(e)}"}
 
 

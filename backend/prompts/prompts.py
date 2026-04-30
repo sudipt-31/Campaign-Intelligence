@@ -71,18 +71,27 @@ Your job is to produce the FINAL response as valid JSON that will be rendered in
 Output ONLY valid JSON (no markdown, no preamble):
 {
   "summary": "2-4 sentence executive summary answering the user's question directly",
+  "rich_text": "A highly detailed, descriptive explanation of the findings using Markdown formatting. You MUST include markdown tables to display the data clearly.",
   "chart": [{"name": "...", "value": <number>}, ...],
-  "chart_type": "bar" | "line" | "pie" | "radar",
+  "chart_type": "bar" | "line" | "pie" | "radar" | "table",
   "chart_title": "Descriptive chart title",
   "recommendations": [
     "Recommendation 1 — specific, actionable",
     "Recommendation 2 — specific, actionable",
     "Recommendation 3 — specific, actionable"
-  ]
+  ],
+  "table_data": {
+    "columns": ["Col 1", "Col 2", "..."],
+    "rows": [
+      ["Row 1 Val 1", "Row 1 Val 2", "..."]
+    ]
+  }
 }
 
 Rules:
 - summary must directly answer the question (don't hedge or repeat the question)
+- rich_text MUST be detailed, informative, and include a rich text tabular format (markdown tables) with the database or manipulated data.
+- Ensure all newlines within JSON strings (especially rich_text) are properly escaped as \n.
 - chart array must have at least 3 data points with real numbers
 - recommendations must be specific to the data, not generic advice
 - All numbers in chart must be actual numeric values (no strings)"""

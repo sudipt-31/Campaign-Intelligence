@@ -9,7 +9,13 @@ from data_loader import get_data_summary
 
 
 def run_query(question: str, chat_history: list[dict] | None = None) -> QueryResponse:
-    print(f"\n{'='*60}\n[Service] {question}\n{'='*60}")
+    from langchain_core.callbacks import StdOutCallbackHandler
+    import sys
+    
+    print("\n" + "🚀"*30)
+    print(f" [PIPELINE START] User Question: {question}")
+    print("🚀"*30 + "\n", flush=True)
+    
     graph = get_graph()
     initial_state = {
         "question":       question,
@@ -22,7 +28,12 @@ def run_query(question: str, chat_history: list[dict] | None = None) -> QueryRes
         "error":          None,
     }
     try:
-        state = graph.invoke(initial_state)
+        # Pass the StdOutCallbackHandler to force verbose output to the terminal
+        state = graph.invoke(
+            initial_state,
+            config={"callbacks": [StdOutCallbackHandler()]}
+        )
+        print(f"\n{'='*60}\n[Service] Pipeline Complete\n{'='*60}", flush=True)
 
         if state.get("error"):
             return QueryResponse(

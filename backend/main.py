@@ -7,11 +7,17 @@ from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from dotenv import load_dotenv
 
+import langchain
+
 from models import QueryRequest, QueryResponse, HealthResponse
 from service import run_query, get_health_info
 from data_loader import get_data_summary
 
 load_dotenv()
+
+# Enable verbose logging for LangChain so the agent process is visible in the terminal
+langchain.debug = True
+langchain.verbose = True
 
 
 @asynccontextmanager
